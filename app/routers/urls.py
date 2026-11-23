@@ -3,6 +3,7 @@ from fastapi.responses import RedirectResponse
 
 from app.dependencies import SessionDep
 from app.models import ShortUrl
+from app.rate_limit import limiter
 from app.schemas import URLCreate, URLResponse, URLStats
 from app.services import create_short_url, get_url_and_increment
 
@@ -12,6 +13,7 @@ router = APIRouter(
 )
 
 @router.post("/shorten", response_model=URLResponse, status_code=201)
+@limiter.limit("10/minutes")
 def shorten_url(request: Request, session: SessionDep, url_create: URLCreate):
     url_db = create_short_url(session=session, original_url=url_create.url)
     return {
